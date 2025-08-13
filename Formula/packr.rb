@@ -8,14 +8,14 @@ require_relative "../lib/custom_download_strategy"
 class Packr < Formula
   desc "Modern, multi-platform package manager automation tool for macOS"
   homepage "https://github.com/codefuturist/monorepository"
-  version "3.0.2-test"
+  version "3.0.3-test"
   license "MIT"
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/codefuturist/monorepository/releases/download/packr-v3.0.2-test/packr-3.0.2-test-darwin-arm64.tar.gz",
+      url "https://github.com/codefuturist/monorepository/releases/download/packr-v3.0.3-test/packr-3.0.3-test-darwin-arm64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "4674990ee4f481e29c30e84a2900bb0d2b35178599e1645ec98e861f78580513"
+      sha256 "355991f00eca12983bc5fe200dc7af8186b895c5dab4ae5d4e78980a4aacc710"
     end
 
     if Hardware::CPU.intel?
