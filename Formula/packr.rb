@@ -4,9 +4,11 @@ class Packr < Formula
   version "3.0.0"
   license "MIT"
   
-  # Public GitHub release URL - works even if repo is private as long as releases are public
+  # For private repositories, we need to use GitHub API with authentication
+  # Set HOMEBREW_GITHUB_API_TOKEN environment variable with a personal access token
   if Hardware::CPU.arm?
-    url "https://github.com/codefuturist/monorepository/releases/download/packr-v3.0.0/packr-3.0.0-darwin-arm64.tar.gz"
+    url "https://github.com/codefuturist/monorepository/releases/download/packr-v3.0.0/packr-3.0.0-darwin-arm64.tar.gz",
+        using: :github_private_release
     sha256 "45516ad3d7e4329cd4f60aed1f8f3e21d29fa819d95d5f295768d64d76ef56a2"
   else
     odie "Packr is currently only available for Apple Silicon Macs"
