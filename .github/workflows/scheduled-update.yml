@@ -1,0 +1,144 @@
+name: Scheduled Formula Update
+
+on:
+  schedule:
+    # Run every day at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      formulas:
+        description: 'Formulas to update (comma-separated)'
+        required: false
+        default: 'packr'
+
+jobs:
+  check-updates:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        formula:
+          - name: packr
+            owner: codefuturist
+            repo: monorepository
+            tag_prefix: packr-v
+    steps:
+      - name: Checkout tap repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1'
+
+      - name: Get current formula version
+        id: current
+        run: |
+          FORMULA_FILE="Formula/${{ matrix.formula.name }}.rb"
+          if [ -f "$FORMULA_FILE" ]; then
+            CURRENT_VERSION=$(grep 'version "' "$FORMULA_FILE" | sed 's/.*version "\(.*\)".*/\1/')
+            echo "version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
+            echo "Current version: ${CURRENT_VERSION}"
+          else
+            echo "version=0.0.0" >> $GITHUB_OUTPUT
+            echo "Formula not found, will create new"
+          fi
+
+      - name: Get latest release version
+        id: latest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get latest release from source repository
+          LATEST_RELEASE=$(curl -s \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ matrix.formula.owner }}/${{ matrix.formula.repo }}/releases/latest")
+          
+          LATEST_VERSION=$(echo "$LATEST_RELEASE" | jq -r '.tag_name' | sed 's/^v//' | sed 's/^${{ matrix.formula.tag_prefix }}//')
+          echo "version=${LATEST_VERSION}" >> $GITHUB_OUTPUT
+          echo "Latest version: ${LATEST_VERSION}"
+          
+          # Get asset information
+          ASSET_URL=$(echo "$LATEST_RELEASE" | jq -r '.assets[] | select(.name | contains("darwin") and contains("arm64")) | .browser_download_url' | head -1)
+          echo "asset_url=${ASSET_URL}" >> $GITHUB_OUTPUT
+
+      - name: Compare versions
+        id: compare
+        run: |
+          CURRENT="${{ steps.current.outputs.version }}"
+          LATEST="${{ steps.latest.outputs.version }}"
+          
+          if [ "$CURRENT" != "$LATEST" ] && [ "$LATEST" != "null" ]; then
+            echo "needs_update=true" >> $GITHUB_OUTPUT
+            echo "Update needed: ${CURRENT} -> ${LATEST}"
+          else
+            echo "needs_update=false" >> $GITHUB_OUTPUT
+            echo "No update needed"
+          fi
+
+      - name: Calculate SHA256
+        if: steps.compare.outputs.needs_update == 'true'
+        id: checksum
+        run: |
+          ASSET_URL="${{ steps.latest.outputs.asset_url }}"
+          if [ -n "$ASSET_URL" ] && [ "$ASSET_URL" != "null" ]; then
+            curl -L -o temp.tar.gz "$ASSET_URL"
+            SHA256=$(sha256sum temp.tar.gz | awk '{print $1}')
+            echo "sha256=${SHA256}" >> $GITHUB_OUTPUT
+            echo "Calculated SHA256: ${SHA256}"
+            rm -f temp.tar.gz
+          fi
+
+      - name: Update formula
+        if: steps.compare.outputs.needs_update == 'true'
+        run: |
+          FORMULA_FILE="Formula/${{ matrix.formula.name }}.rb"
+          VERSION="${{ steps.latest.outputs.version }}"
+          URL="${{ steps.latest.outputs.asset_url }}"
+          SHA256="${{ steps.checksum.outputs.sha256 }}"
+          
+          if [ -f "$FORMULA_FILE" ]; then
+            # Update existing formula
+            sed -i "s/version \".*\"/version \"${VERSION}\"/" "$FORMULA_FILE"
+            sed -i "s|url \"https://github.com/.*/releases/download/.*\"|url \"${URL}\"|" "$FORMULA_FILE"
+            sed -i "s/sha256 \".*\"/sha256 \"${SHA256}\"/" "$FORMULA_FILE"
+          else
+            echo "Formula file not found, skipping update"
+            exit 1
+          fi
+
+      - name: Commit and push
+        if: steps.compare.outputs.needs_update == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          git add Formula/*.rb
+          git commit -m "Update ${{ matrix.formula.name }} to ${{ steps.latest.outputs.version }}" || echo "No changes"
+          git push
+
+      - name: Create PR if on protected branch
+        if: steps.compare.outputs.needs_update == 'true' && github.ref == 'refs/heads/main'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Update ${{ matrix.formula.name }} to ${{ steps.latest.outputs.version }}"
+          title: "Update ${{ matrix.formula.name }} to ${{ steps.latest.outputs.version }}"
+          body: |
+            ## Automated Formula Update
+            
+            Updates ${{ matrix.formula.name }} from ${{ steps.current.outputs.version }} to ${{ steps.latest.outputs.version }}
+            
+            ### Changes
+            - Version: `${{ steps.current.outputs.version }}` → `${{ steps.latest.outputs.version }}`
+            - SHA256: `${{ steps.checksum.outputs.sha256 }}`
+            
+            ### Source
+            Repository: [${{ matrix.formula.owner }}/${{ matrix.formula.repo }}](https://github.com/${{ matrix.formula.owner }}/${{ matrix.formula.repo }})
+            
+            ---
+            *This PR was automatically generated by the scheduled update workflow.*
+          branch: formula-update-${{ matrix.formula.name }}-${{ steps.latest.outputs.version }}
+          delete-branch: true
