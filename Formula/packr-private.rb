@@ -58,12 +58,19 @@ class GitHubPrivateReleaseDownloadStrategy < CurlDownloadStrategy
     # Download the asset using the API
     download_url = asset["url"]
     
-    curl_download download_url, 
-                  to: temporary_path,
-                  extra_curl_args: [
-                    "--header", "Authorization: Bearer #{@github_token}",
-                    "--header", "Accept: application/octet-stream"
-                  ]
+    # Use curl directly with authorization headers
+    curl_args = [
+      "--location",
+      "--silent",
+      "--fail",
+      "--retry", "3",
+      "--output", temporary_path.to_s,
+      "--header", "Authorization: Bearer #{@github_token}",
+      "--header", "Accept: application/octet-stream",
+      download_url
+    ]
+    
+    system_command!("curl", args: curl_args, print_stdout: false)
   end
 end
 
