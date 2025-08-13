@@ -19,6 +19,10 @@ on:
         description: 'SHA256 checksum'
         required: true
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   update-formula:
     runs-on: ubuntu-latest
