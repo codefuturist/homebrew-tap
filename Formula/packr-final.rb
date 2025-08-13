@@ -69,7 +69,7 @@ class PackrFinal < Formula
     
     if token_set
       <<~EOS
-        #{Formatter.headline("Packr installed successfully!")}
+        ✅ Packr installed successfully!
         
         Configuration file: ~/.config/packr/packages.yaml
         
@@ -79,16 +79,16 @@ class PackrFinal < Formula
           packr                    # Run updates
         
         Edit configuration:
-          #{Formatter.highlight("vim ~/.config/packr/packages.yaml")}
+          vim ~/.config/packr/packages.yaml
       EOS
     else
       <<~EOS
-        #{Formatter.headline("Packr installed!")}
+        Packr installed!
         
-        #{Formatter.warning("Note: This formula works with private repositories when authenticated.")}
+        ⚠️  Note: This formula works with private repositories when authenticated.
         
         For private repository support:
-          #{Formatter.highlight("export HOMEBREW_GITHUB_API_TOKEN=$(gh auth token)")}
+          export HOMEBREW_GITHUB_API_TOKEN=$(gh auth token)
         
         Or add to ~/.zshrc:
           if command -v gh &> /dev/null && gh auth status &> /dev/null 2>&1; then
