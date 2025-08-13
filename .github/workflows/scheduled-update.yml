@@ -52,7 +52,7 @@ jobs:
       - name: Get latest release version
         id: latest
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.HOMEBREW_PAT || secrets.GITHUB_TOKEN }}
         run: |
           # Get latest release from source repository
           LATEST_RELEASE=$(curl -s \
