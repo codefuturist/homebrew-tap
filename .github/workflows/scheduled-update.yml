@@ -85,14 +85,21 @@ jobs:
       - name: Calculate SHA256
         if: steps.compare.outputs.needs_update == 'true'
         id: checksum
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_PAT || secrets.GITHUB_TOKEN }}
         run: |
           ASSET_URL="${{ steps.latest.outputs.asset_url }}"
           if [ -n "$ASSET_URL" ] && [ "$ASSET_URL" != "null" ]; then
-            curl -L -o temp.tar.gz "$ASSET_URL"
-            SHA256=$(sha256sum temp.tar.gz | awk '{print $1}')
+            # Use GitHub CLI to download private release assets
+            ASSET_NAME=$(basename "$ASSET_URL")
+            gh release download "${{ matrix.formula.tag_prefix }}${{ steps.latest.outputs.version }}" \
+              --repo "${{ matrix.formula.owner }}/${{ matrix.formula.repo }}" \
+              --pattern "$ASSET_NAME" \
+              --dir /tmp
+            SHA256=$(sha256sum "/tmp/$ASSET_NAME" | awk '{print $1}')
             echo "sha256=${SHA256}" >> $GITHUB_OUTPUT
             echo "Calculated SHA256: ${SHA256}"
-            rm -f temp.tar.gz
+            rm -f "/tmp/$ASSET_NAME"
           fi
 
       - name: Update formula
