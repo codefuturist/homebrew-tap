@@ -83,6 +83,7 @@ brew install codefuturist/tap/packr-auth
 ```
 
 Features:
+
 - Automatic token detection from multiple sources
 - GitHub CLI integration
 - Support for HOMEBREW_GITHUB_API_TOKEN, GITHUB_TOKEN, GH_TOKEN
@@ -114,6 +115,7 @@ chmod +x install-packr.sh
 ## Token Scopes
 
 Your GitHub token needs the following scopes:
+
 - `repo` - Full control of private repositories
 - `read:packages` - Read packages (optional)
 - `workflow` - Update GitHub Actions workflows (optional)
@@ -183,6 +185,7 @@ The formulas use a custom `GitHubAuthenticatedDownloadStrategy` that:
 ### Token Priority
 
 Tokens are checked in this order:
+
 1. `HOMEBREW_GITHUB_API_TOKEN`
 2. `GITHUB_TOKEN`
 3. `GH_TOKEN`
@@ -192,6 +195,7 @@ Tokens are checked in this order:
 ## Contributing
 
 Pull requests are welcome! Please ensure:
+
 - Formulas pass `brew audit --strict`
 - Download strategies handle authentication properly
 - Error messages are helpful

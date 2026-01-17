@@ -1,1 +1,63 @@
 sqlite_mcp_server.db
+# =============================================================================
+# OS & Editor
+# =============================================================================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/settings.json
+*.iml
+
+# =============================================================================
+# Environment & Secrets
+# =============================================================================
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+!*.example
+!*.template
+
+# =============================================================================
+# Logs
+# =============================================================================
+*.log
+logs/
+.logs/
+
+# =============================================================================
+# Node.js
+# =============================================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.nuxt/
+.svelte-kit/
+
+# Cache
+.eslintcache
+.cache/
+.parcel-cache/
+.turbo/
+*.tsbuildinfo
+
+# Coverage
+coverage/
+.nyc_output/
