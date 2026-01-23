@@ -1,0 +1,123 @@
+# Homebrew Tap Justfile
+# Migrated from Makefile to modular just-modules system
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Configuration
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Import core
+import '~/.local/share/just-modules/core/mod.just'
+
+# Import language modules
+mod python '~/.local/share/just-modules/languages/python/mod.just'
+
+# Import features
+mod security '~/.local/share/just-modules/features/security.just'
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Default
+# ═══════════════════════════════════════════════════════════════════════════════
+
+default:
+    @just --list --list-heading $'🍺 Homebrew Tap - Available commands:\n'
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Setup
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Complete project setup
+[group('setup')]
+setup:
+    @just _header "Project Setup"
+    @just python::deps
+    @just _success "Setup complete!"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Formula Management
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# List all formulas
+[group('formulas')]
+list:
+    @just _header "Available Formulas"
+    @ls -1 Formula/*.rb | xargs -n1 basename | sed 's/.rb$//'
+
+# Audit formulas
+[group('formulas')]
+audit:
+    @just _header "Auditing Formulas"
+    @for formula in Formula/*.rb; do echo "Auditing $$(basename $$formula)..." && brew audit --strict $$formula; done
+    @just _success "Audit complete"
+
+# Update formula version
+[group('formulas')]
+update-formula name version:
+    @just _info "Updating formula: {{name}} to version {{version}}"
+    @ruby scripts/update_formula.rb {{name}} {{version}}
+    @just _success "Formula updated"
+
+# Validate formula
+[group('formulas')]
+validate-formula name:
+    @just _info "Validating formula: {{name}}"
+    @brew audit --strict Formula/{{name}}.rb
+    @just _success "Formula valid"
+
+# Test formula installation
+[group('formulas')]
+test-install name:
+    @just _info "Testing installation: {{name}}"
+    @brew install --build-from-source Formula/{{name}}.rb
+    @just _success "Installation test complete"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Version Tracking
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Check for outdated formulas
+[group('version')]
+check-outdated:
+    @just _header "Checking for Updates"
+    @python3 scripts/check_versions.py
+
+# Bump formula version
+[group('version')]
+bump-version name:
+    @just _info "Bumping version for: {{name}}"
+    @python3 scripts/bump_version.py {{name}}
+    @just _success "Version bumped"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Testing
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Run all tests
+[group('test')]
+test:
+    @just audit
+    @just _success "All tests passed"
+
+# Lint Ruby formulas
+[group('test')]
+lint:
+    @just _info "Linting formulas..."
+    @rubocop Formula/*.rb || true
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Maintenance
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Clean artifacts
+[group('maintenance')]
+clean:
+    @just _info "Cleaning..."
+    @rm -rf *.bottle* tmp/
+    @just _success "Cleaned"
+
+# Show project info
+info:
+    @just _header "{{project_name}}"
+    @just _kv "Tap" "codefuturist/tap"
+    @just _kv "Version" "{{_version_from_git}}"
+    @just _kv "Branch" "{{_git_branch}}"
+    @just _kv "Formulas" "$(ls -1 Formula/*.rb | wc -l | tr -d ' ')"
