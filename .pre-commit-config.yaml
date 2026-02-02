@@ -1,0 +1,138 @@
+# Pre-commit configuration template
+# See https://pre-commit.com for more information
+#
+# DEVELOPER-FRIENDLY SETUP:
+# - By default, hooks run ONLY on staged files (fast during development)
+# - Use `make hooks-run` for staged files only (default)
+# - Use `make hooks-run-all` for full repo check (CI, release prep)
+#
+# Install: make hooks-install
+# Run on staged: make hooks-run (or just `pre-commit run`)
+# Run on all: make hooks-run-all (or `pre-commit run --all-files`)
+
+default_language_version:
+  python: python3.11
+
+# Default stages - only run on pre-commit (staged files)
+default_stages: [pre-commit]
+default_install_hook_types: [pre-commit, commit-msg]
+
+# Fail fast - stop on first failure for faster feedback
+fail_fast: false
+
+repos:
+  # Usage: pre-commit run autoupdate --hook-stage manual
+  - repo: local
+    hooks:
+      - id: autoupdate
+        name: autoupdate
+        entry: pre-commit autoupdate
+        language: system
+        always_run: true
+        pass_filenames: false
+        stages: [manual]
+
+
+  # =============================================================================
+  # General file checks (fast)
+  # =============================================================================
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--unsafe]  # Allow custom tags
+      - id: check-json
+      - id: check-toml
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-symlinks
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  # =============================================================================
+  # Python (ruff - extremely fast)
+  # Uncomment if Python files in repository
+  # =============================================================================
+  # - repo: https://github.com/astral-sh/ruff-pre-commit
+  #   rev: v0.8.6
+  #   hooks:
+  #     # Linter - runs on staged Python files
+  #     - id: ruff
+  #       args: [--fix, --exit-non-zero-on-fix]
+  #       types_or: [python, pyi]
+  #     # Formatter - runs on staged Python files
+  #     - id: ruff-format
+  #       types_or: [python, pyi]
+
+  # =============================================================================
+  # Security scanning
+  # =============================================================================
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        # Only scan staged files, not full repo
+        args: ['--exclude-lines', 'ghp_example|your-token-here|xxx']
+        exclude: |
+          (?x)^(
+            .*\.lock$|
+            .*-lock\.json$|
+            .*\.min\.js$|
+            \.secrets\.baseline$
+          )$
+
+  # =============================================================================
+  # Shell scripts
+  # Uncomment if shell scripts in repository
+  # =============================================================================
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        args: [-x, -e, 'SC1091,SC2086']  # Allow sourcing, ignore some warnings
+
+  # =============================================================================
+  # Markdown
+  # Uncomment if Markdown files in repository
+  # =============================================================================
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.43.0
+    hooks:
+      - id: markdownlint-fix
+        args: [--disable, MD013, MD033, MD041, --]  # Disable line length, inline HTML, first-line heading
+
+  # =============================================================================
+  # YAML
+  # Uncomment if YAML files in repository
+  # =============================================================================
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args: [-c=.yamllint.yml]
+
+  # =============================================================================
+  # Commit message format (conventional commits)
+  # =============================================================================
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.0.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: [feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert]
+
+# =============================================================================
+# CI-specific overrides
+# =============================================================================
+# For CI, run with: pre-commit run --all-files --show-diff-on-failure
+#
+# Example GitHub Actions:
+#   - uses: pre-commit/action@v3.0.1
+#     with:
+#       extra_args: --all-files --show-diff-on-failure
