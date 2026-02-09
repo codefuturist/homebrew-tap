@@ -20,6 +20,25 @@ default_install_hook_types: [pre-commit, commit-msg]
 # Fail fast - stop on first failure for faster feedback
 fail_fast: false
 
+# =============================================================================
+# Global exclusions - Skip generated/cached/formula files
+# =============================================================================
+exclude: |
+  (?x)^(
+    Formula/.*\.rb\.bak$|
+    node_modules/.*|
+    dist/.*|
+    build/.*|
+    \.venv/.*|
+    __pycache__/.*|
+    \.git/.*|
+    vendor/.*|
+    external/.*|
+    .*\.lock$|
+    .*-lock\.(json|yaml)$|
+    .*\.min\.(js|css)$
+  )$
+
 repos:
   # Usage: pre-commit run autoupdate --hook-stage manual
   - repo: local
