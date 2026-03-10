@@ -11,7 +11,7 @@ class GitPatrol < Formula
 
   on_macos do
     url "https://github.com/codefuturist/monorepository/releases/download/v0.2.1/git-patrol_0.2.1_Darwin_all.tar.gz", using: GitHubPrivateRepositoryReleaseDownloadStrategy
-    sha256 "02379ed0e1a17c08b67d2746d0ac344558c4dc36298724504e1b69479e22f954"
+    sha256 "69154d97929b68e042e6ca8569400537aced9b6bf94de83fdc950b14b3f6cf3c"
 
     define_method(:install) do
       bin.install "git-patrol"
@@ -21,14 +21,14 @@ class GitPatrol < Formula
   on_linux do
     if Hardware::CPU.intel? && Hardware::CPU.is_64_bit?
       url "https://github.com/codefuturist/monorepository/releases/download/v0.2.1/git-patrol_0.2.1_Linux_x86_64.tar.gz", using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "0f50c4b5fef461e2506c9fcb904479efcfad495703dea299b6f3766076a35481"
+      sha256 "b2cdb4db265854a2553847cbc92b498648fc97d3fce9eedbd7477896a4d264cd"
       define_method(:install) do
         bin.install "git-patrol"
       end
     end
     if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
       url "https://github.com/codefuturist/monorepository/releases/download/v0.2.1/git-patrol_0.2.1_Linux_aarch64.tar.gz", using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "6f34a31b425d5db5da81ce180c9571e5813dfb0e9295e40fd3ba06d1fea6501e"
+      sha256 "fbe5f33a1570d4d1bd8a129add24cb2c9fa4c168560abf9499031158b976266e"
       define_method(:install) do
         bin.install "git-patrol"
       end
