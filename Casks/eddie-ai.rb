@@ -6,11 +6,11 @@ cask "eddie-ai" do
   sha256 :no_check
 
   on_arm do
-    url "https://eddie-desktop-app.s3.us-east-2.amazonaws.com/distributions/darwin/arm64/Eddie+AI.dmg",
+    url "https://eddie-desktop-app.s3.us-east-2.amazonaws.com/distributions/darwin/arm64/Eddie+AI.dmg?v=#{version}",
         verified: "eddie-desktop-app.s3.us-east-2.amazonaws.com/"
   end
   on_intel do
-    url "https://eddie-desktop-app.s3.us-east-2.amazonaws.com/distributions/darwin/x64/Eddie+AI.dmg",
+    url "https://eddie-desktop-app.s3.us-east-2.amazonaws.com/distributions/darwin/x64/Eddie+AI.dmg?v=#{version}",
         verified: "eddie-desktop-app.s3.us-east-2.amazonaws.com/"
   end
 
