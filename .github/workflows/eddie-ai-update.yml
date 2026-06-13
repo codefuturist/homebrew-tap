@@ -1,0 +1,50 @@
+name: Update Eddie AI Cask
+
+on:
+  schedule:
+    # Daily ~09:17 UTC (off the top of the hour to avoid scheduler congestion)
+    - cron: '17 9 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force re-read the dmg even if the ETag is unchanged'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: eddie-ai-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    # macOS is required: the dmg is UDIF/lzfse (ULFO) and only hdiutil can read it.
+    runs-on: macos-latest
+    steps:
+      - name: Checkout tap
+        uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Detect latest version and update cask
+        run: |
+          if [ "${{ inputs.force }}" = "true" ]; then
+            bash scripts/update-eddie-ai.sh --force
+          else
+            bash scripts/update-eddie-ai.sh
+          fi
+
+      - name: Commit and push if changed
+        run: |
+          if git diff --quiet -- Casks/eddie-ai.rb; then
+            echo "No version change — nothing to commit."
+            exit 0
+          fi
+          ver="$(awk -F'"' '/^  version /{print $2; exit}' Casks/eddie-ai.rb)"
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/eddie-ai.rb
+          git commit -m "chore(eddie-ai): update to ${ver} [skip ci]"
+          git push
