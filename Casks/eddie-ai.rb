@@ -1,17 +1,17 @@
 # Managed by .github/workflows/eddie-ai-update.yml — version, the per-arch
 # sha256, and the source-etag below are updated automatically; do not edit by hand.
-# source-etag: 6851a8985cb62dbcac111068fc2b3eed
+# source-etag: 36cb10c662f6ee8c37037aa7db0ba529
 cask "eddie-ai" do
-  version "3.2.18"
+  version "3.2.19"
 
   on_arm do
-    sha256 "b2e0a29a47a790aa2920c20358cfcc0a45078d512f162b68daadec3e377a4151"
+    sha256 "7c2ecc5bea19fd1e7556b4b941d1dc08a297213686a4bc293e14662536b0a20a"
 
     url "https://eddie-desktop-app.s3.us-east-2.amazonaws.com/distributions/darwin/arm64/Eddie+AI.dmg?v=#{version}",
         verified: "eddie-desktop-app.s3.us-east-2.amazonaws.com/"
   end
   on_intel do
-    sha256 "2ddd7962f5d12a08b51e4393127a8a28b33a6fb333a4ac1ce4c1db9285dc1774"
+    sha256 "8efce5f1dc020944bdae9f7755bf6eb00330231d6488a1a65d6d04ab3595f0dc"
 
     url "https://eddie-desktop-app.s3.us-east-2.amazonaws.com/distributions/darwin/x64/Eddie+AI.dmg?v=#{version}",
         verified: "eddie-desktop-app.s3.us-east-2.amazonaws.com/"
