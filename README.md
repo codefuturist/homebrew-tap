@@ -66,6 +66,18 @@ fi
 
 ## Available Formulas
 
+### bitwarden-cli
+
+Official prebuilt Bitwarden CLI (`bw`) binaries (signed + notarized by
+Bitwarden), updated daily from GitHub releases with SHA-256 values taken
+from the GitHub API's release asset digests. Same formula name as
+homebrew/core's `bitwarden-cli` (which builds from source with Node), so
+always install and upgrade fully qualified:
+
+```bash
+brew install codefuturist/tap/bitwarden-cli
+```
+
 ### packr
 
 Standard formula for public repositories.

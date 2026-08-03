@@ -1,0 +1,49 @@
+name: Formula CI
+
+# Scoped to bitwarden-cli: the tap's other formulas (packr*, git-patrol)
+# need private-repo auth and cannot install in public CI. Extend the paths
+# filter (and, if needed, a matrix) when more public formulas are added.
+on:
+  pull_request:
+    paths:
+      - 'Formula/bitwarden-cli.rb'
+      - '.github/workflows/formula-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: formula-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        # arm64 macOS + x64 Linux together exercise two of the four
+        # per-arch download URLs end-to-end.
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Set up Homebrew (checks this repo out as the tap)
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+
+      - name: brew style
+        run: brew style codefuturist/tap/bitwarden-cli
+
+      - name: brew audit --strict --online
+        env:
+          HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: brew audit --strict --online codefuturist/tap/bitwarden-cli
+
+      - name: brew install
+        run: brew install --verbose codefuturist/tap/bitwarden-cli
+
+      - name: brew test
+        run: brew test codefuturist/tap/bitwarden-cli
+
+      - name: brew livecheck (informational)
+        run: brew livecheck --formula codefuturist/tap/bitwarden-cli || true
