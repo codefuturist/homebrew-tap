@@ -6,20 +6,21 @@ require_relative "lib/custom_download_strategy"
 class Bwtid < Formula
   desc "Touch ID for your Bitwarden master password (rbw / bw CLI / MCP, with a password fallback)"
   homepage "https://github.com/codefuturist/monorepository/tree/main/apps/cli/bwtid"
-  version "0.1.0"
+  version "0.2.0"
   license "MIT"
   depends_on :macos
 
   if Hardware::CPU.arm?
-    url "https://github.com/codefuturist/monorepository/releases/download/bwtid%2Fv0.1.0/bwtid_0.1.0_darwin_universal.tar.gz", using: GitHubPrivateRepositoryReleaseDownloadStrategy
-    sha256 "fdae8b4e0f6c60195c44aa375ee062cfb67cc1d88d444e8fad8df18246705e17"
+    url "https://github.com/codefuturist/monorepository/releases/download/bwtid%2Fv0.2.0/bwtid_0.2.0_darwin_universal.tar.gz", using: GitHubPrivateRepositoryReleaseDownloadStrategy
+    sha256 "207516a9708379010b63741eea6bf728b21d9692ee9cf16bb3d9ed1e05c8f1d8"
 
     define_method(:install) do
       bin.install "bwtid"
       # Busybox-style symlinks: one binary dispatches on argv[0].
-      %w[bw-unlock bw-lock bw-touchid-enroll bw-touchid-gate pinentry-touchid].each do |n|
+      %w[bw-unlock bw-lock bw-login bw-touchid-enroll bw-touchid-gate pinentry-touchid].each do |n|
         bin.install_symlink "bwtid" => n
       end
+      generate_completions_from_executable(bin/"bwtid", "--generate-completion-script", shells: [:bash, :zsh, :fish])
     end
   end
 
