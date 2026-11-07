@@ -10,33 +10,35 @@ cask "porter" do
       @pattern = %r{https://github.com/([^/]+)/([^/]+)/releases/download/([^/]+)/(\S+)}
       raise CurlDownloadStrategyError, "Invalid GitHub release URL: #{@url}" unless @url =~ @pattern
       _, @owner, @repo, @tag, @filename = *@url.match(@pattern)
-      @token = ENV["HOMEBREW_GITHUB_API_TOKEN"]
-      raise CurlDownloadStrategyError, "HOMEBREW_GITHUB_API_TOKEN is required to install porter (private release)." unless @token
     end
 
     def _fetch(url:, resolved_url:, timeout:)
+      token = GitHub::API.credentials
+      unless token
+        raise CurlDownloadStrategyError,
+              "porter is a private release: run `gh auth login`, or set HOMEBREW_GITHUB_API_TOKEN."
+      end
       meta = GitHub::API.open_rest("https://api.github.com/repos/#{@owner}/#{@repo}/releases/tags/#{@tag}")
       asset = meta["assets"].find { |a| a["name"] == @filename }
       raise CurlDownloadStrategyError, "Asset #{@filename} not found in release #{@tag}." unless asset
       curl_download "https://api.github.com/repos/#{@owner}/#{@repo}/releases/assets/#{asset["id"]}",
                     "--header", "Accept: application/octet-stream",
-                    "--header", "Authorization: Bearer #{@token}",
+                    "--header", "Authorization: Bearer #{token}",
                     to: temporary_path
     end
   end
 
-  version "0.1.11"
+  version "0.1.12"
 
   on_macos do
     app "Porter.app"
   end
 
   on_macos do
-    on_arm do
-      sha256 "7d3f3c5ff97c9dbd02ca0c6d099200a38fbead269d2a195a0c0325fd7017ac8e"
-      url "https://github.com/codefuturist/porter/releases/download/v#{version}/Porter_#{version}.dmg",
+    depends_on arch: :arm64
+    sha256 "81bac661b0c2436ff26a545f70ef4fc3ca8b22d26f4363cff3f6396d548819ab"
+    url "https://github.com/codefuturist/porter/releases/download/v#{version}/Porter_#{version}.dmg",
         using: GitHubPrivateReleaseStrategy
-    end
   end
 
   name "porter"
@@ -46,12 +48,16 @@ cask "porter" do
   livecheck do
     skip "Auto-generated on release."
   end
+  depends_on :macos
 
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{appdir}/Porter.app"]
+  postflight_steps do
+    on_macos do
+      run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{appdir}}/Porter.app"],
+          writable_paths: ["Porter.app"], writable_base: :appdir
+    end
   end
 
-  # No zap stanza required
+  zap :not_required
 
   caveats <<~EOS
     Porter is signed ad-hoc, not notarized. If macOS still blocks the first
