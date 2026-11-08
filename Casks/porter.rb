@@ -28,7 +28,7 @@ cask "porter" do
     end
   end
 
-  version "0.1.12"
+  version "0.1.13"
 
   on_macos do
     app "Porter.app"
@@ -36,7 +36,7 @@ cask "porter" do
 
   on_macos do
     depends_on arch: :arm64
-    sha256 "81bac661b0c2436ff26a545f70ef4fc3ca8b22d26f4363cff3f6396d548819ab"
+    sha256 "cb8b9f1ca0f604e09e9748d4a3a7c6b84fd5bd6bf6e2b1d83276ca025145447c"
     url "https://github.com/codefuturist/porter/releases/download/v#{version}/Porter_#{version}.dmg",
         using: GitHubPrivateReleaseStrategy
   end
